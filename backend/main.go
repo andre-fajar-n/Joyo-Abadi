@@ -13,6 +13,8 @@ func main() {
 }
 
 func setupRouter() *gin.Engine {
+	gin.ForceConsoleColor()
+
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {

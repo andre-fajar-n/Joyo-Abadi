@@ -3,17 +3,12 @@ version: "3"
 services:
     joyoabadi:
         restart: always
-        build:
-            context: .
-            dockerfile: deployments/dev.dockerfile
+        build: .
         ports:
             - "8000:8000"
         links:
             - joyoabadidbserver
         volumes:
-            # Require parent common package, and dependencies definition is in parent directory.
-            # Following volume will simulate local backend repo structure.
-            # make sure to run "dep ensure -v" in parent directory (backend).
             - ./:/app
         working_dir: /app
     joyoabadidbmigration:
@@ -24,12 +19,9 @@ services:
         links:
             - joyoabadidbserver
         volumes:
-            # Require parent common package, and dependencies definition is in parent directory.
-            # Following volume will simulate local backend repo structure.
-            # make sure to run "dep ensure -v" in parent directory (backend).
             - ./:/go/src/github.com/andre-fajar-n/Joyo-Abadi/backend
         working_dir: /go/src/github.com/andre-fajar-n/Joyo-Abadi/backend
-        command: -path=./schema -database postgres://username:password@joyoabadidbserver:5432/joyoabadidb?sslmode=disable up
+        # command: -path=./schema -database postgres://username:password@joyoabadidbserver:5432/joyoabadidb?sslmode=disable up
     joyoabadidbbrowser:
         restart: on-failure
         image: adminer:4-standalone

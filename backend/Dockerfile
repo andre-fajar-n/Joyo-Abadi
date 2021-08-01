@@ -22,10 +22,14 @@ RUN 	mkdir -p /app/config
 RUN	chown -R app:app . 
 
 # copy binary 
-ADD     shop /app
+ADD     joyoabadi /app
 
 USER    app
 
-EXPOSE  8080
-ENTRYPOINT ["./backend","-c"]
+RUN go get github.com/githubnemo/CompileDaemon
+
+
+EXPOSE  8000
+ENTRYPOINT CompileDaemon --build="go build -o app" --command="./app"
+
 # CMD     ["config/app.toml","api"]
