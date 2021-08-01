@@ -21,7 +21,7 @@ services:
         volumes:
             - ./:/go/src/github.com/andre-fajar-n/Joyo-Abadi/backend
         working_dir: /go/src/github.com/andre-fajar-n/Joyo-Abadi/backend
-        # command: -path=./schema -database postgres://username:password@joyoabadidbserver:5432/joyoabadidb?sslmode=disable up
+        command: -path=./schema -database postgres://username:password@joyoabadidbserver:5432/joyoabadidb?sslmode=disable up
     joyoabadidbbrowser:
         restart: on-failure
         image: adminer:4-standalone

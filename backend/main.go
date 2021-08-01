@@ -3,10 +3,13 @@ package main
 import (
 	"net/http"
 
+	"github.com/andre-fajar-n/Joyo-Abadi/backend/config"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	config.ConnectDB()
+
 	r := setupRouter()
 
 	r.Run(":8000")
