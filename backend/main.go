@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	config.ConnectDB()
+	db := config.ConnectDB()
+	config.MigrateDB(db)
 
 	r := setupRouter()
 

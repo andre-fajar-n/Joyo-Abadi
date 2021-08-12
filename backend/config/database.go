@@ -6,19 +6,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/andre-fajar-n/Joyo-Abadi/backend/model/basemodel"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-type DBConfig struct {
-	Username string
-	Password string
-	Host     string
-	Port     string
-	Name     string
-}
 
 func ConnectDB() *gorm.DB {
 	log.Println("Connecting DB...")
@@ -37,22 +30,38 @@ func ConnectDB() *gorm.DB {
 		log.Fatalf("Error loading .env file")
 	}
 
-	// username := os.Getenv("USER_DATABASE")
-	// password := os.Getenv("PASS_DATABASE")
-	// host := os.Getenv("HOST_DATABASE")
-	// port := os.Getenv("PORT_DATABASE")
-	// name := os.Getenv("NAME_DATABASE")
+	username := os.Getenv("USER_DATABASE")
+	password := os.Getenv("PASS_DATABASE")
+	host := os.Getenv("HOST_DATABASE")
+	port := os.Getenv("PORT_DATABASE")
+	name := os.Getenv("NAME_DATABASE")
 
-	dsn := "host=127.0.0.1 user=username password=password dbname=joyoabadidb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		username,
+		password,
+		host,
+		port,
+		name,
+	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 
-	fmt.Println(db, err)
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
 	log.Println("Database connection success!")
 
 	return db.Debug()
+}
+
+func MigrateDB(db *gorm.DB) {
+	log.Println("Start migrate")
+	db.AutoMigrate(
+		&basemodel.AccountRole{},
+		&basemodel.Account{},
+		&basemodel.Customer{},
+	)
+	log.Println("Finish migrate")
 }

@@ -1,14 +1,20 @@
 package basemodel
 
 import (
-	"database/sql"
-
-	"gorm.io/gorm"
+	"time"
 )
 
-type AccountBaseModel struct {
-	gorm.Model
-	Username string `gorm:""`
-	Password string
-	Birtday  sql.NullTime
+type Account struct {
+	AccountID uint `gorm:"primaryKey;autoIncrement"`
+	Role      string
+	Username  string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Customer  Customer `gorm:"foreignKey:CustomerID;references:AccountID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+}
+
+type AccountRole struct {
+	AccountRole string  `gorm:"primaryKey"`
+	Account     Account `gorm:"foreignKey:Role;references:AccountRole;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 }
