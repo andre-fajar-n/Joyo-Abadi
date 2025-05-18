@@ -10,8 +10,8 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
-            {{ if .Error }}
-            <div class="alert alert-danger">{{ .Error }}</div>
+            {{ if .ErrorLogin }}
+            <div class="alert alert-danger">{{ .ErrorLogin }}</div>
             {{ end }}
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>

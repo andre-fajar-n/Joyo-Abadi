@@ -10,7 +10,7 @@ import (
 
 func Setup(app *fiber.App, db *gorm.DB) {
 	// Apply template data middleware to all routes
-	// app.Use(middleware.TemplateData())
+	app.Use(middleware.TemplateData())
 
 	// Public routes
 	app.Get("/login", controllers.RenderLoginPage)

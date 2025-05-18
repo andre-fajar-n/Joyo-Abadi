@@ -5,10 +5,10 @@ import (
 	"joyo-abadi/models"
 	"joyo-abadi/routes"
 	"joyo-abadi/utils"
-	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -16,32 +16,44 @@ import (
 )
 
 func main() {
+	// Initialize logger first
 	utils.InitLogger()
-	utils.InitSession()
-
 	utils.Log.Info("Starting joyo-abadi application...")
+
+	// Load environment variables
+	err := godotenv.Load()
+	if err != nil {
+		utils.Log.Warn("Could not load .env file")
+	}
 
 	// Make sure the template engine is correctly configured
 	engine := html.New("./views", ".html")
 	engine.Reload(true) // Enable reloading for development
-	engine.Debug(true)  // Enable debug mode
+	// engine.Debug(true)  // Enable debug mode
 
 	// Debug template loading
-	err := engine.Load()
+	err = engine.Load()
 	if err != nil {
-		utils.Log.WithError(err).Warn("Error loading templates")
+		utils.Log.WithError(err).Error("Error loading templates")
 	} else {
 		utils.Log.Info("Templates loaded successfully")
 		// Print all loaded templates for debugging
 		for _, template := range engine.Templates.Templates() {
-			utils.Log.Infof("Loaded template: %s", template.Name())
+			utils.Log.Debugf("Loaded template: %s", template.Name())
 		}
 	}
 
 	// Set up Fiber app with HTML template engine
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:        engine,
+		ErrorHandler: utils.ErrorHandler,
 	})
+
+	// Add middleware
+	app.Use(recover.New())
+	app.Use(utils.FiberLogger()) // Use our custom logger instead of the default one
+
+	utils.InitSession()
 
 	// Set up PostgreSQL connection
 	db := initDatabase()
@@ -55,15 +67,10 @@ func main() {
 	}
 
 	utils.Log.Infof("Server is running on port %s", port)
-	log.Fatal(app.Listen(":" + port))
+	utils.Log.Fatal(app.Listen(":" + port))
 }
 
 func initDatabase() *gorm.DB {
-	err := godotenv.Load()
-	if err != nil {
-		utils.Log.Warn("Could not load .env file")
-	}
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),

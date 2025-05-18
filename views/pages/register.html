@@ -10,9 +10,9 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </div>
-            <!-- {{ if .Error }}
-            <div class="alert alert-danger">{{ .Error }}</div>
-            {{ end }} -->
+            {{ if .ErrorRegister }}
+            <div class="alert alert-danger">{{ .ErrorRegister }}</div>
+            {{ end }}
             <button type="submit" class="btn btn-primary w-100">Register</button>
         </form>
         <p class="text-center mt-3">Already have an account? <a href="/login">Login</a></p>
