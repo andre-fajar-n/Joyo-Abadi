@@ -17,11 +17,30 @@ import (
 
 func main() {
 	utils.InitLogger()
+	utils.InitSession()
+
 	utils.Log.Info("Starting joyo-abadi application...")
+
+	// Make sure the template engine is correctly configured
+	engine := html.New("./views", ".html")
+	engine.Reload(true) // Enable reloading for development
+	engine.Debug(true)  // Enable debug mode
+
+	// Debug template loading
+	err := engine.Load()
+	if err != nil {
+		utils.Log.WithError(err).Warn("Error loading templates")
+	} else {
+		utils.Log.Info("Templates loaded successfully")
+		// Print all loaded templates for debugging
+		for _, template := range engine.Templates.Templates() {
+			utils.Log.Infof("Loaded template: %s", template.Name())
+		}
+	}
 
 	// Set up Fiber app with HTML template engine
 	app := fiber.New(fiber.Config{
-		Views: html.New("./views", ".html"), // Use fiber template engine
+		Views: engine,
 	})
 
 	// Set up PostgreSQL connection
