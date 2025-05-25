@@ -28,3 +28,37 @@ func GetUserID(c *fiber.Ctx) (uint, bool) {
 	userID, ok := sess.Get("userID").(uint)
 	return userID, ok
 }
+
+func GetDataByKey(c *fiber.Ctx, key string) (interface{}, error) {
+	sess, err := Store.Get(c)
+	if err != nil {
+		Log.Info("Failed to get session in GetDataByKey")
+		return nil, err
+	}
+
+	return sess.Get(key), nil
+}
+
+func SetDataByKey(c *fiber.Ctx, key string, value interface{}) error {
+	sess, err := Store.Get(c)
+	if err != nil {
+		Log.Info("Failed to get session in SetDataByKey")
+		return err
+	}
+
+	sess.Set(key, value)
+
+	return sess.Save()
+}
+
+func DestroyByKey(c *fiber.Ctx, key string) error {
+	sess, err := Store.Get(c)
+	if err != nil {
+		Log.Info("Failed to get session in DestroyByKey")
+		return err
+	}
+
+	sess.Delete(key)
+
+	return sess.Save()
+}
