@@ -68,15 +68,9 @@ func Login(db *gorm.DB) fiber.Handler {
 			return c.Redirect("/login")
 		}
 
-		// Generate a new CSRF token for the session
 		sess.Set("userID", user.ID)
-		if err := sess.Save(); err != nil {
-			utils.Log.WithError(err).Error("Failed to save session")
-			return c.Status(fiber.StatusInternalServerError).SendString("Session error")
-		}
-
 		utils.Log.WithField("email", loginData.Email).Info("User logged in successfully")
-		return c.Redirect("/dashboard")
+		return c.Redirect("/")
 	}
 }
 

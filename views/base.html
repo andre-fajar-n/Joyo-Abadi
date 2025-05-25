@@ -8,6 +8,10 @@
     </head>
     <body>
 
+        {{ if .IsAuthenticated }}
+            {{ template "navbar" . }}
+        {{ end }}
+
         <main class="container mt-5">
             {{ embed }}
         </main>
