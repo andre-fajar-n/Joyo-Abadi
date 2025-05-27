@@ -71,13 +71,29 @@ func main() {
 }
 
 func initDatabase() *gorm.DB {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-	)
+	// Check if DATABASE_URL is provided (Railway style)
+	databaseURL := os.Getenv("DATABASE_URL")
+	var dsn string
+
+	if databaseURL != "" {
+		// Use DATABASE_URL directly (Railway PostgreSQL format)
+		dsn = databaseURL
+	} else {
+		// Fallback to individual environment variables
+		sslMode := os.Getenv("DB_SSL_MODE")
+		if sslMode == "" {
+			sslMode = "disable" // Default for local development
+		}
+
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASSWORD"),
+			os.Getenv("DB_NAME"),
+			os.Getenv("DB_PORT"),
+			sslMode,
+		)
+	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: &utils.GormLogger{},

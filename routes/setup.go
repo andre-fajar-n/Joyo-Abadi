@@ -9,6 +9,14 @@ import (
 )
 
 func Setup(app *fiber.App, db *gorm.DB) {
+	// Health check endpoint for Railway
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status":  "ok",
+			"service": "joyo-abadi",
+		})
+	})
+
 	// Public routes
 	app.Get("/login", controllers.RenderLoginPage)
 	app.Get("/register", controllers.RenderRegisterPage)
