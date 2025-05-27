@@ -1,0 +1,36 @@
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+
+# Build artifacts
+tmp/
+*.cache
+main
+
+# Documentation
+README.md
+*.md
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+
+# Air (hot reload)
+.air.toml
+
+# Test files
+*_test.go
+testdata/
+
+# Logs
+*.log

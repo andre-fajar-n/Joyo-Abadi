@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,9 +11,12 @@ import (
 var Store *session.Store
 
 func InitSession() {
+	// Determine if we're in production (Railway sets RAILWAY_ENVIRONMENT)
+	isProduction := os.Getenv("RAILWAY_ENVIRONMENT") == "production" || os.Getenv("ENV") == "production"
+
 	Store = session.New(session.Config{
 		Expiration:     time.Hour * 24,
-		CookieSecure:   true, // Ensure this is true in production with HTTPS
+		CookieSecure:   isProduction, // Only secure cookies in production with HTTPS
 		CookieHTTPOnly: true,
 		CookieSameSite: "Lax", // Helps with CSRF protection
 	})
