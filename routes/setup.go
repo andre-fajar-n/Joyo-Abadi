@@ -25,5 +25,12 @@ func Setup(app *fiber.App, db *gorm.DB) {
 
 	app.Get("/", controllers.Home())
 
-	// Add more protected routes here
+	// Product routes
+	app.Get("/products", controllers.ListProducts(db))
+	app.Get("/products/create", controllers.RenderCreateProduct())
+	app.Post("/products/create", controllers.CreateProduct(db))
+	app.Get("/products/:id", controllers.GetProductDetail(db))
+	app.Get("/products/edit/:id", controllers.RenderEditProduct(db))
+	app.Post("/products/edit/:id", controllers.UpdateProduct(db))
+	app.Delete("/products/delete/:id", controllers.DeleteProduct(db))
 }
