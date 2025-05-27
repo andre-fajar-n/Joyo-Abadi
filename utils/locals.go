@@ -7,5 +7,12 @@ func SetLocalsUserID(c *fiber.Ctx, userID uint) {
 }
 
 func GetLocalUserID(c *fiber.Ctx) uint {
-	return c.Locals("userID").(uint)
+	userID := c.Locals("userID")
+	if userID == nil {
+		return 0
+	}
+	if id, ok := userID.(uint); ok {
+		return id
+	}
+	return 0
 }
