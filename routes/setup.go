@@ -41,4 +41,11 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	app.Get("/products/edit/:id", controllers.RenderEditProduct(db))
 	app.Post("/products/edit/:id", controllers.UpdateProduct(db))
 	app.Delete("/products/delete/:id", controllers.DeleteProduct(db))
+
+	// Product Unit routes
+	app.Get("/products/:productId/units", controllers.ListProductUnits(db))
+	app.Get("/products/:productId/units/create", controllers.RenderCreateProductUnit(db))
+	app.Post("/products/:productId/units/create", controllers.CreateProductUnit(db))
+	app.Get("/products/:productId/units/edit/:unitId", controllers.RenderEditProductUnit(db))
+	app.Post("/products/:productId/units/edit/:unitId", controllers.UpdateProductUnit(db))
 }

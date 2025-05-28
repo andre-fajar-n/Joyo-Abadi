@@ -1,0 +1,224 @@
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Add New Unit</h4>
+                        <small>Product: {{ .Product.Name }} (Base: {{ .Product.BaseUnitName }})</small>
+                    </div>
+                    <a href="/products/{{ .Product.ID }}/units" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Units
+                    </a>
+                </div>
+                <div class="card-body">
+                    {{ if .Error }}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i> {{ .Error }}
+                    </div>
+                    {{ end }}
+
+                    <form method="POST" action="/products/{{ .Product.ID }}/units/create">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="unit_name" class="form-label">Unit Name <span class="text-danger">*</span></label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="unit_name" 
+                                           name="unit_name" 
+                                           value="{{ if .Unit }}{{ .Unit.UnitName }}{{ end }}"
+                                           placeholder="e.g., box, dozen, case"
+                                           required>
+                                    <div class="form-text">What do you call this unit? (e.g., box, dozen, case)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="conversion_rate" class="form-label">Conversion Rate <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">1 unit =</span>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="conversion_rate" 
+                                               name="conversion_rate" 
+                                               value="{{ if .Unit }}{{ .Unit.ConversionRate }}{{ end }}"
+                                               step="0.01" 
+                                               min="0.01"
+                                               placeholder="12.0"
+                                               required>
+                                        <span class="input-group-text">{{ .Product.BaseUnitName }}(s)</span>
+                                    </div>
+                                    <div class="form-text">How many {{ .Product.BaseUnitName }}(s) does 1 unit contain?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Unit Price <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="price" 
+                                               name="price" 
+                                               value="{{ if .Unit }}{{ .Unit.Price }}{{ end }}"
+                                               step="0.01" 
+                                               min="0"
+                                               placeholder="18.00"
+                                               required>
+                                    </div>
+                                    <div class="form-text">Price for 1 unit</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Initial Stock</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="quantity" 
+                                           name="quantity" 
+                                           value="{{ if .Unit }}{{ .Unit.Quantity }}{{ else }}0{{ end }}"
+                                           min="0"
+                                           placeholder="5">
+                                    <div class="form-text">How many units do you have in stock?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3"
+                                      placeholder="e.g., Box of 12 bottles, perfect for small businesses">{{ if .Unit }}{{ .Unit.Description }}{{ end }}</textarea>
+                            <div class="form-text">Additional details about this unit</div>
+                        </div>
+
+                        <!-- Price Calculator -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title">Price Calculator</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <strong>Price per {{ .Product.BaseUnitName }}:</strong>
+                                            <span id="price-per-base" class="text-primary">Rp 0.00</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Total Base Units:</strong>
+                                            <span id="total-base-units" class="text-info">0</span> {{ .Product.BaseUnitName }}(s)
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <strong>Example:</strong>
+                                            <div class="text-muted small" id="example-text">
+                                                Enter values to see calculation
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/products/{{ .Product.ID }}/units" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Add Unit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Examples</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Water Bottles</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>6-pack:</strong> 6 bottles, Rp 8.50</li>
+                                <li><strong>Box:</strong> 12 bottles, Rp 16.00</li>
+                                <li><strong>Case:</strong> 24 bottles, Rp 30.00</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Office Supplies</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Pack:</strong> 10 pens, Rp 25.00</li>
+                                <li><strong>Box:</strong> 50 pens, Rp 120.00</li>
+                                <li><strong>Carton:</strong> 200 pens, Rp 450.00</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Food Items</h6>
+                            <ul class="list-unstyled small">
+                                <li><strong>Dozen:</strong> 12 eggs, Rp 18.00</li>
+                                <li><strong>Tray:</strong> 30 eggs, Rp 42.00</li>
+                                <li><strong>Crate:</strong> 360 eggs, Rp 480.00</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const conversionRateInput = document.getElementById('conversion_rate');
+    const priceInput = document.getElementById('price');
+    const quantityInput = document.getElementById('quantity');
+    const unitNameInput = document.getElementById('unit_name');
+    
+    const pricePerBaseSpan = document.getElementById('price-per-base');
+    const totalBaseUnitsSpan = document.getElementById('total-base-units');
+    const exampleTextDiv = document.getElementById('example-text');
+    
+    function updateCalculations() {
+        const conversionRate = parseFloat(conversionRateInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const quantity = parseInt(quantityInput.value) || 0;
+        const unitName = unitNameInput.value || 'unit';
+        
+        // Calculate price per base unit
+        const pricePerBase = conversionRate > 0 ? price / conversionRate : 0;
+        pricePerBaseSpan.textContent = `Rp ${pricePerBase.toFixed(2)}`;
+        
+        // Calculate total base units
+        const totalBaseUnits = quantity * conversionRate;
+        totalBaseUnitsSpan.textContent = totalBaseUnits.toFixed(1);
+        
+        // Update example
+        if (conversionRate > 0 && price > 0) {
+            exampleTextDiv.innerHTML = `
+                1 ${unitName} = ${conversionRate} {{ .Product.BaseUnitName }}(s)<br>
+                1 ${unitName} costs Rp ${price.toFixed(2)}<br>
+                Each {{ .Product.BaseUnitName }} costs Rp ${pricePerBase.toFixed(2)}
+            `;
+        } else {
+            exampleTextDiv.textContent = 'Enter values to see calculation';
+        }
+    }
+    
+    // Add event listeners
+    conversionRateInput.addEventListener('input', updateCalculations);
+    priceInput.addEventListener('input', updateCalculations);
+    quantityInput.addEventListener('input', updateCalculations);
+    unitNameInput.addEventListener('input', updateCalculations);
+    
+    // Initial calculation
+    updateCalculations();
+});
+</script>

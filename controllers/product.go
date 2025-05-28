@@ -17,8 +17,8 @@ func ListProducts(db *gorm.DB) fiber.Handler {
 
 		var products []models.Product
 
-		// Query products with user information
-		if err := db.Preload("User").Find(&products).Error; err != nil {
+		// Query products with user information and units
+		if err := db.Preload("User").Preload("Units").Where("is_active = ?", true).Find(&products).Error; err != nil {
 			utils.Log.WithError(err).Error("Failed to fetch products")
 			return c.Status(fiber.StatusInternalServerError).Render("pages/error", fiber.Map{
 				"Title":        "Error",
@@ -27,11 +27,40 @@ func ListProducts(db *gorm.DB) fiber.Handler {
 			}, "base")
 		}
 
+		// Prepare products with calculated values
+		productsWithCalc := make([]fiber.Map, len(products))
+		for i, product := range products {
+			activeUnits := product.GetActiveUnits()
+			totalBaseQuantity := product.GetTotalBaseQuantity()
+			hasStock := product.HasStock()
+
+			productsWithCalc[i] = fiber.Map{
+				"ID":                product.ID,
+				"Name":              product.Name,
+				"BaseUnitName":      product.BaseUnitName,
+				"Price":             product.Price,
+				"Quantity":          product.Quantity,
+				"UserID":            product.UserID,
+				"User":              product.User,
+				"Description":       product.Description,
+				"IsActive":          product.IsActive,
+				"Units":             product.Units,
+				"ActiveUnits":       activeUnits,
+				"ActiveUnitCount":   len(activeUnits),
+				"TotalUnitCount":    len(product.Units),
+				"TotalBaseQuantity": totalBaseQuantity,
+				"HasStock":          hasStock,
+				"CreatedAt":         product.CreatedAt,
+				"UpdatedAt":         product.UpdatedAt,
+			}
+		}
+
 		return c.Render("pages/products/index", fiber.Map{
-			"Title":           "Products",
-			"Products":        products,
-			"CurrentUserID":   userID,
-			"IsAuthenticated": true,
+			"Title":            "Products",
+			"Products":         products,
+			"ProductsWithCalc": productsWithCalc,
+			"CurrentUserID":    userID,
+			"IsAuthenticated":  true,
 		}, "base")
 	}
 }
@@ -65,6 +94,12 @@ func CreateProduct(db *gorm.DB) fiber.Handler {
 
 		// Set the user ID for the product
 		product.UserID = userID
+		product.IsActive = true
+
+		// Set default base unit name if not provided
+		if product.BaseUnitName == "" {
+			product.BaseUnitName = "piece"
+		}
 
 		// Validate product data
 		if product.Name == "" || product.Price <= 0 {
@@ -76,7 +111,29 @@ func CreateProduct(db *gorm.DB) fiber.Handler {
 			}, "base")
 		}
 
-		if err := db.Create(&product).Error; err != nil {
+		// Create product in a transaction to ensure base unit is created
+		err := db.Transaction(func(tx *gorm.DB) error {
+			// Create the product
+			if err := tx.Create(&product).Error; err != nil {
+				return err
+			}
+
+			// Create the base unit
+			baseUnit := models.ProductUnit{
+				ProductID:      product.ID,
+				UnitName:       product.BaseUnitName,
+				ConversionRate: 1.0, // Base unit always has conversion rate of 1
+				Price:          product.Price,
+				Quantity:       product.Quantity,
+				IsBaseUnit:     true,
+				IsActive:       true,
+				Description:    "Base unit",
+			}
+
+			return tx.Create(&baseUnit).Error
+		})
+
+		if err != nil {
 			utils.Log.WithError(err).Error("Failed to create product")
 			return c.Status(fiber.StatusInternalServerError).Render("pages/products/create", fiber.Map{
 				"Title":           "Create Product",
@@ -323,16 +380,43 @@ func GetProductDetail(db *gorm.DB) fiber.Handler {
 		}
 
 		var product models.Product
-		if err := db.Preload("User").First(&product, id).Error; err != nil {
+		if err := db.Preload("User").Preload("Units").First(&product, id).Error; err != nil {
 			utils.Log.WithError(err).Warn("Product not found")
 			return c.Redirect("/products")
 		}
 
+		// Prepare units with calculated values
+		units := product.GetActiveUnits()
+		unitsWithCalc := make([]fiber.Map, len(units))
+		for i, unit := range units {
+			pricePerBase := unit.GetPricePerBaseUnit()
+			baseQuantity := unit.GetBaseQuantity()
+
+			unitsWithCalc[i] = fiber.Map{
+				"ID":             unit.ID,
+				"UnitName":       unit.UnitName,
+				"ConversionRate": unit.ConversionRate,
+				"Price":          unit.Price,
+				"Quantity":       unit.Quantity,
+				"IsBaseUnit":     unit.IsBaseUnit,
+				"IsActive":       unit.IsActive,
+				"Description":    unit.Description,
+				"PricePerBase":   pricePerBase,
+				"BaseQuantity":   baseQuantity,
+				"CreatedAt":      unit.CreatedAt,
+				"UpdatedAt":      unit.UpdatedAt,
+			}
+		}
+
 		return c.Render("pages/products/detail", fiber.Map{
-			"Title":           "Product Detail",
-			"Product":         product,
-			"CurrentUserID":   userID,
-			"IsAuthenticated": true,
+			"Title":             "Product Detail",
+			"Product":           product,
+			"Units":             units,
+			"UnitsWithCalc":     unitsWithCalc,
+			"TotalBaseQuantity": product.GetTotalBaseQuantity(),
+			"HasStock":          product.HasStock(),
+			"CurrentUserID":     userID,
+			"IsAuthenticated":   true,
 		}, "base")
 	}
 }

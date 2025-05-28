@@ -102,7 +102,7 @@ func initDatabase() *gorm.DB {
 		utils.Log.WithError(err).Fatal("Failed to connect to database")
 	}
 
-	err = db.AutoMigrate(&models.User{}, &models.Product{}, &models.Transaction{})
+	err = db.AutoMigrate(&models.User{}, &models.Product{}, &models.ProductUnit{}, &models.Transaction{})
 	if err != nil {
 		utils.Log.WithError(err).Fatal("Failed to auto-migrate database")
 	}

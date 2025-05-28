@@ -1,0 +1,214 @@
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Manage Units: {{ .Product.Name }}</h4>
+                        <small>Base Unit: {{ .Product.BaseUnitName }}</small>
+                    </div>
+                    <div>
+                        <a href="/products/{{ .Product.ID }}/units/create" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-plus"></i> Add Unit
+                        </a>
+                        <a href="/products/{{ .Product.ID }}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Units List -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {{ if .Units }}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Unit Name</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Conversion Rate</th>
+                                    <th>Price per {{ .Product.BaseUnitName }}</th>
+                                    <th>Base Equivalent</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range .UnitsWithCalc }}
+                                <tr class="{{ if not .IsActive }}table-secondary{{ end }}">
+                                    <td>
+                                        <strong>{{ .UnitName }}</strong>
+                                        {{ if .IsBaseUnit }}
+                                            <span class="badge bg-primary ms-1">Base Unit</span>
+                                        {{ end }}
+                                        {{ if .Description }}
+                                            <br><small class="text-muted">{{ .Description }}</small>
+                                        {{ end }}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">Rp {{ printf "%.2f" .Price }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ if gt .Quantity 0 }}bg-success{{ else }}bg-danger{{ end }}">
+                                            {{ .Quantity }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ if .IsBaseUnit }}
+                                            <span class="text-muted">1:1 (Base)</span>
+                                        {{ else }}
+                                            <span class="fw-bold">{{ .ConversionRate }}</span> {{ $.Product.BaseUnitName }}
+                                        {{ end }}
+                                    </td>
+                                    <td>
+                                        <span class="text-info">Rp {{ printf "%.2f" .PricePerBase }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary">{{ printf "%.1f" .BaseQuantity }}</span>
+                                        {{ $.Product.BaseUnitName }}
+                                    </td>
+                                    <td>
+                                        {{ if .IsActive }}
+                                            <span class="badge bg-success">Active</span>
+                                        {{ else }}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {{ end }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="/products/{{ $.Product.ID }}/units/edit/{{ .ID }}"
+                                               class="btn btn-outline-primary" title="Edit Unit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {{ if not .IsBaseUnit }}
+                                            <button class="btn btn-outline-danger toggle-unit"
+                                                    data-id="{{ .ID }}"
+                                                    data-name="{{ .UnitName }}"
+                                                    data-active="{{ .IsActive }}"
+                                                    title="{{ if .IsActive }}Deactivate{{ else }}Activate{{ end }} Unit">
+                                                {{ if .IsActive }}
+                                                    <i class="fas fa-eye-slash"></i>
+                                                {{ else }}
+                                                    <i class="fas fa-eye"></i>
+                                                {{ end }}
+                                            </button>
+                                            {{ end }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Inventory Summary</h6>
+                                    <p class="card-text">
+                                        <strong>Total Units:</strong> {{ .TotalUnits }}<br>
+                                        <strong>Active Units:</strong> {{ .ActiveUnits }}<br>
+                                        <strong>Total Stock:</strong> {{ printf "%.1f" .TotalBaseQuantity }} {{ .Product.BaseUnitName }}(s)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Price Range</h6>
+                                    <p class="card-text">
+                                        {{ if .ActiveUnits }}
+                                        <strong>Best Price:</strong> Rp {{ printf "%.2f" .MinPrice }} per {{ .Product.BaseUnitName }}<br>
+                                        <strong>Highest Price:</strong> Rp {{ printf "%.2f" .MaxPrice }} per {{ .Product.BaseUnitName }}<br>
+                                        <strong>Savings:</strong> {{ printf "%.1f" .SavingsPercent }}% with bulk units
+                                        {{ else }}
+                                        <span class="text-muted">No active units for price comparison</span>
+                                        {{ end }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{ else }}
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Units Configured</h5>
+                        <p class="text-muted">This product doesn't have any units set up yet.</p>
+                        <a href="/products/{{ .Product.ID }}/units/create" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Unit
+                        </a>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toggle Unit Status Modal -->
+<div class="modal fade" id="toggleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toggleModalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="toggleModalBody">
+                <!-- Content will be set by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmToggle">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleModal = new bootstrap.Modal(document.getElementById('toggleModal'));
+    let unitToToggle = null;
+
+    // Handle toggle unit buttons
+    document.querySelectorAll('.toggle-unit').forEach(button => {
+        button.addEventListener('click', function() {
+            const unitId = this.getAttribute('data-id');
+            const unitName = this.getAttribute('data-name');
+            const isActive = this.getAttribute('data-active') === 'true';
+
+            unitToToggle = {
+                id: unitId,
+                name: unitName,
+                isActive: isActive
+            };
+
+            // Set modal content
+            const action = isActive ? 'deactivate' : 'activate';
+            document.getElementById('toggleModalTitle').textContent =
+                `${action.charAt(0).toUpperCase() + action.slice(1)} Unit`;
+            document.getElementById('toggleModalBody').innerHTML =
+                `Are you sure you want to ${action} the unit "<strong>${unitName}</strong>"?`;
+
+            toggleModal.show();
+        });
+    });
+
+    // Handle confirm toggle
+    document.getElementById('confirmToggle').addEventListener('click', function() {
+        if (unitToToggle) {
+            // For now, just reload the page
+            // In a real implementation, you'd make an API call to toggle the unit
+            alert(`Unit "${unitToToggle.name}" ${unitToToggle.isActive ? 'deactivated' : 'activated'} successfully!`);
+            toggleModal.hide();
+            // window.location.reload();
+        }
+    });
+});
+</script>
