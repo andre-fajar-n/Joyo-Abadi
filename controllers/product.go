@@ -4,6 +4,7 @@ import (
 	"joyo-abadi/models"
 	"joyo-abadi/utils"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -101,11 +102,18 @@ func CreateProduct(db *gorm.DB) fiber.Handler {
 			product.BaseUnitName = "piece"
 		}
 
-		// Validate product data
-		if product.Name == "" || product.Price <= 0 {
+		// Validate product data using validator
+		validationErrors := utils.ValidateStruct(product)
+		if len(validationErrors) > 0 {
+			errorMessage := "Validation errors: " + strings.Join(validationErrors, ", ")
+			utils.Log.WithFields(map[string]interface{}{
+				"validation_errors": validationErrors,
+				"product_data":      product,
+			}).Warn("Product validation failed")
+
 			return c.Status(fiber.StatusBadRequest).Render("pages/products/create", fiber.Map{
 				"Title":           "Create Product",
-				"Error":           "Product name and price are required. Price must be greater than 0.",
+				"Error":           errorMessage,
 				"Product":         product,
 				"IsAuthenticated": true,
 			}, "base")
@@ -247,11 +255,18 @@ func UpdateProduct(db *gorm.DB) fiber.Handler {
 		// Ensure the user ID doesn't change
 		product.UserID = userID
 
-		// Validate product data
-		if product.Name == "" || product.Price <= 0 {
+		// Validate product data using validator
+		validationErrors := utils.ValidateStruct(product)
+		if len(validationErrors) > 0 {
+			errorMessage := "Validation errors: " + strings.Join(validationErrors, ", ")
+			utils.Log.WithFields(map[string]interface{}{
+				"validation_errors": validationErrors,
+				"product_data":      product,
+			}).Warn("Product update validation failed")
+
 			return c.Status(fiber.StatusBadRequest).Render("pages/products/edit", fiber.Map{
 				"Title":           "Edit Product",
-				"Error":           "Product name and price are required. Price must be greater than 0.",
+				"Error":           errorMessage,
 				"Product":         product,
 				"IsAuthenticated": true,
 			}, "base")

@@ -5,13 +5,13 @@ import "gorm.io/gorm"
 // Product represents a product in the system
 type Product struct {
 	gorm.Model
-	Name         string        `json:"name" form:"name" gorm:"not null"`
-	BaseUnitName string        `json:"base_unit_name" form:"base_unit_name" gorm:"not null;default:'piece'"` // e.g., "piece", "gram", "liter"
-	Price        float64       `json:"price" form:"price" gorm:"not null"`                                   // Price for base unit (deprecated, use ProductUnits)
-	Quantity     int           `json:"quantity" form:"quantity" gorm:"not null"`                             // Base unit quantity (deprecated, use ProductUnits)
+	Name         string        `json:"name" form:"name" gorm:"not null" validate:"required,min=1,max=100"`
+	BaseUnitName string        `json:"base_unit_name" form:"base_unit_name" gorm:"not null;default:'piece'" validate:"required,min=1,max=50,safe_text"` // e.g., "piece", "gram", "liter"
+	Price        float64       `json:"price" form:"price" gorm:"not null" validate:"gt=0"`                                                              // Price for base unit (deprecated, use ProductUnits)
+	Quantity     int           `json:"quantity" form:"quantity" gorm:"not null" validate:"gte=0"`                                                       // Base unit quantity (deprecated, use ProductUnits)
 	UserID       uint          `json:"user_id" gorm:"nullable"`
 	User         *User         `json:"user" gorm:"foreignKey:UserID"`
-	Description  string        `json:"description" form:"description"`
+	Description  string        `json:"description" form:"description" validate:"max=500"`
 	Units        []ProductUnit `json:"units" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"` // Available units for this product
 	IsActive     bool          `json:"is_active" form:"is_active" gorm:"default:true"`                // Whether product is active
 }

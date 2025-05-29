@@ -162,21 +162,8 @@ func CreateProductUnit(db *gorm.DB) fiber.Handler {
 			"description":     unit.Description,
 		}).Debug("Received unit data from form")
 
-		// Validate unit data with better error messages
-		var validationErrors []string
-
-		if unit.UnitName == "" {
-			validationErrors = append(validationErrors, "Unit name is required")
-		}
-
-		if unit.ConversionRate <= 0 {
-			validationErrors = append(validationErrors, "Conversion rate must be greater than 0")
-		}
-
-		if unit.Price < 0 {
-			validationErrors = append(validationErrors, "Price cannot be negative")
-		}
-
+		// Validate unit data using validator
+		validationErrors := utils.ValidateStruct(unit)
 		if len(validationErrors) > 0 {
 			errorMessage := "Validation errors: " + strings.Join(validationErrors, ", ")
 			utils.Log.WithFields(map[string]interface{}{
@@ -364,21 +351,8 @@ func UpdateProductUnit(db *gorm.DB) fiber.Handler {
 			"is_active":       unit.IsActive,
 		}).Debug("Received updated unit data from form")
 
-		// Validate unit data with better error messages
-		var validationErrors []string
-
-		if unit.UnitName == "" {
-			validationErrors = append(validationErrors, "Unit name is required")
-		}
-
-		if unit.ConversionRate <= 0 {
-			validationErrors = append(validationErrors, "Conversion rate must be greater than 0")
-		}
-
-		if unit.Price < 0 {
-			validationErrors = append(validationErrors, "Price cannot be negative")
-		}
-
+		// Validate unit data using validator
+		validationErrors := utils.ValidateStruct(unit)
 		if len(validationErrors) > 0 {
 			errorMessage := "Validation errors: " + strings.Join(validationErrors, ", ")
 			utils.Log.WithFields(map[string]interface{}{

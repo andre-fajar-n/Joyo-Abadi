@@ -18,6 +18,10 @@ import (
 func main() {
 	// Initialize logger first
 	utils.InitLogger()
+
+	// Initialize validator
+	utils.InitValidator()
+
 	utils.Log.Info("Starting joyo-abadi application...")
 
 	// Load environment variables

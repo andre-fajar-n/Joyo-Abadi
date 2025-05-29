@@ -6,14 +6,14 @@ import "gorm.io/gorm"
 type ProductUnit struct {
 	gorm.Model
 	ProductID      uint    `json:"product_id" form:"product_id" gorm:"not null;index"`
-	Product        Product `json:"product" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
-	UnitName       string  `json:"unit_name" form:"unit_name" gorm:"not null;size:50"`               // e.g., "box", "dozen", "bottle"
-	ConversionRate float64 `json:"conversion_rate" form:"conversion_rate" gorm:"not null;default:1"` // How many base units this represents
-	Price          float64 `json:"price" form:"price" gorm:"not null"`                               // Price for this unit
-	Quantity       int     `json:"quantity" form:"quantity" gorm:"not null;default:0"`               // Stock quantity for this unit
-	IsBaseUnit     bool    `json:"is_base_unit" form:"is_base_unit" gorm:"default:false"`            // Whether this is the base unit
-	IsActive       bool    `json:"is_active" form:"is_active" gorm:"default:true"`                   // Whether this unit is currently available
-	Description    string  `json:"description" form:"description" gorm:"size:255"`                   // Optional description for the unit
+	Product        Product `json:"product" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE" validate:"-"`
+	UnitName       string  `json:"unit_name" form:"unit_name" gorm:"not null;size:50" validate:"required,min=1,max=50,safe_text"` // e.g., "box", "dozen", "bottle"
+	ConversionRate float64 `json:"conversion_rate" form:"conversion_rate" gorm:"not null;default:1" validate:"gt=0"`              // How many base units this represents
+	Price          float64 `json:"price" form:"price" gorm:"not null" validate:"gte=0"`                                           // Price for this unit
+	Quantity       int     `json:"quantity" form:"quantity" gorm:"not null;default:0" validate:"gte=0"`                           // Stock quantity for this unit
+	IsBaseUnit     bool    `json:"is_base_unit" form:"is_base_unit" gorm:"default:false"`                                         // Whether this is the base unit
+	IsActive       bool    `json:"is_active" form:"is_active" gorm:"default:true"`                                                // Whether this unit is currently available
+	Description    string  `json:"description" form:"description" gorm:"size:255" validate:"max=255"`                             // Optional description for the unit
 }
 
 // TableName sets the table name for ProductUnit
