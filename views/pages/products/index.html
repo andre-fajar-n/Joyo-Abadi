@@ -21,57 +21,117 @@
                     </thead>
                     <tbody>
                         {{ if .ProductsWithCalc }}
-                            {{ range .ProductsWithCalc }}
+                            {{ range $index, $product := .ProductsWithCalc }}
                             <tr>
-                                <td>{{ .ID }}</td>
+                                <td>{{ $product.ID }}</td>
                                 <td>
-                                    <a href="/products/{{ .ID }}" class="fw-bold">{{ .Name }}</a>
-                                    {{ if not .IsActive }}
+                                    <a href="/products/{{ $product.ID }}" class="fw-bold">{{ $product.Name }}</a>
+                                    {{ if not $product.IsActive }}
                                         <span class="badge bg-secondary ms-1">Inactive</span>
                                     {{ end }}
                                 </td>
                                 <td>
-                                    <span class="text-muted">{{ .BaseUnitName }}</span>
-                                    <br><small class="text-success">Legacy: Rp {{ printf "%.2f" .Price }}</small>
+                                    <span class="text-muted">{{ $product.BaseUnitName }}</span>
+                                    <br><small class="text-success">Legacy: Rp {{ printf "%.2f" $product.Price }}</small>
                                 </td>
                                 <td>
-                                    {{ if .Units }}
-                                        <span class="badge bg-primary">{{ .TotalUnitCount }} units</span>
-                                        <br>
-                                        <small class="text-muted">{{ .ActiveUnitCount }} active</small>
+                                    {{ if $product.Units }}
+                                        <button class="btn btn-sm btn-outline-primary" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#units-{{ $product.ID }}"
+                                                aria-expanded="false" title="Show/Hide Units">
+                                            <i class="fas fa-boxes"></i> {{ $product.TotalUnitCount }} units
+                                        </button>
+                                        <br><small class="text-muted">{{ $product.ActiveUnitCount }} active</small>
                                     {{ else }}
                                         <span class="text-warning">No units</span>
                                     {{ end }}
                                 </td>
                                 <td>
-                                    {{ if .Units }}
-                                        <span class="fw-bold {{ if .HasStock }}text-success{{ else }}text-danger{{ end }}">
-                                            {{ printf "%.1f" .TotalBaseQuantity }}
-                                        </span> {{ .BaseUnitName }}(s)
-                                        <br><small class="text-muted">Legacy: {{ .Quantity }}</small>
+                                    {{ if $product.Units }}
+                                        <span class="fw-bold {{ if $product.HasStock }}text-success{{ else }}text-danger{{ end }}">
+                                            {{ printf "%.1f" $product.TotalBaseQuantity }}
+                                        </span> {{ $product.BaseUnitName }}(s)
+                                        <br><small class="text-muted">Legacy: {{ $product.Quantity }}</small>
                                     {{ else }}
-                                        <span class="text-muted">{{ .Quantity }} {{ .BaseUnitName }}(s)</span>
+                                        <span class="text-muted">{{ $product.Quantity }} {{ $product.BaseUnitName }}(s)</span>
                                     {{ end }}
                                 </td>
-                                <td>{{ if .User }}{{ .User.Email }}{{ end }}</td>
+                                <td>{{ if $product.User }}{{ $product.User.Email }}{{ end }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        {{ if eq .UserID $.CurrentUserID }}
-                                            <a href="/products/{{ .ID }}/units" class="btn btn-sm btn-outline-success" title="Manage Units">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="/products/edit/{{ .ID }}" class="btn btn-sm btn-outline-primary" title="Edit Product">
+                                        {{ if eq $product.UserID $.CurrentUserID }}
+                                            <a href="/products/edit/{{ $product.ID }}" class="btn btn-sm btn-outline-primary" title="Edit Product & Units">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button class="btn btn-sm btn-outline-danger delete-product" data-id="{{ .ID }}" data-name="{{ .Name }}" title="Delete Product">
+                                            <button class="btn btn-sm btn-outline-danger delete-product" data-id="{{ $product.ID }}" data-name="{{ $product.Name }}" title="Delete Product">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         {{ else }}
-                                            <a href="/products/{{ .ID }}" class="btn btn-sm btn-outline-info">View</a>
+                                            <a href="/products/{{ $product.ID }}" class="btn btn-sm btn-outline-info">View</a>
                                         {{ end }}
                                     </div>
                                 </td>
                             </tr>
+                            <!-- Expandable Units Row -->
+                            {{ if $product.Units }}
+                            <tr>
+                                <td colspan="7" class="p-0">
+                                    <div class="collapse" id="units-{{ $product.ID }}">
+                                        <div class="card card-body m-2">
+                                            <h6 class="mb-3">Units for {{ $product.Name }}</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Unit Name</th>
+                                                            <th>Price</th>
+                                                            <th>Stock</th>
+                                                            <th>Conversion</th>
+                                                            <th>Price per {{ $product.BaseUnitName }}</th>
+                                                            <th>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {{ range $product.Units }}
+                                                        <tr class="{{ if not .IsActive }}table-secondary{{ end }}">
+                                                            <td>
+                                                                <strong>{{ .UnitName }}</strong>
+                                                                {{ if .IsBaseUnit }}<span class="badge bg-primary ms-1">Base</span>{{ end }}
+                                                                {{ if .Description }}<br><small class="text-muted">{{ .Description }}</small>{{ end }}
+                                                            </td>
+                                                            <td>Rp {{ printf "%.2f" .Price }}</td>
+                                                            <td>
+                                                                <span class="badge {{ if gt .Quantity 0 }}bg-success{{ else }}bg-danger{{ end }}">
+                                                                    {{ .Quantity }}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                {{ if .IsBaseUnit }}
+                                                                    1 {{ .UnitName }}
+                                                                {{ else }}
+                                                                    1 {{ .UnitName }} = {{ .ConversionRate }} {{ $product.BaseUnitName }}
+                                                                {{ end }}
+                                                            </td>
+                                                            <td>
+                                                                <span class="text-info">Rp {{ printf "%.2f" .GetPricePerBaseUnit }}</span>
+                                                            </td>
+                                                            <td>
+                                                                {{ if .IsActive }}
+                                                                    <span class="badge bg-success">Active</span>
+                                                                {{ else }}
+                                                                    <span class="badge bg-secondary">Inactive</span>
+                                                                {{ end }}
+                                                            </td>
+                                                        </tr>
+                                                        {{ end }}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{ end }}
                             {{ end }}
                         {{ else }}
                             <tr>

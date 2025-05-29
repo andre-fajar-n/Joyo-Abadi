@@ -1,43 +1,227 @@
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Edit Product</h4>
+        <div class="col-md-12">
+            <!-- Product Information Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Edit Product: {{ .Product.Name }}</h4>
+                    <a href="/products/{{ .Product.ID }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Product
+                    </a>
                 </div>
                 <div class="card-body">
                     {{ if .Error }}
                     <div class="alert alert-danger">{{ .Error }}</div>
                     {{ end }}
-                    
-                    <form method="POST" action="/products/edit/{{ .Product.ID }}">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Product Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ .Product.Name }}" required>
+
+                    <form method="POST" action="/products/edit/{{ .Product.ID }}" id="productForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ .Product.Name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="base_unit_name" class="form-label">Base Unit <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="base_unit_name" name="base_unit_name" value="{{ .Product.BaseUnitName }}" required>
+                                    <div class="form-text">Smallest sellable unit</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="price" class="form-label">Price (Rp)</label>
-                            <input type="number" class="form-control" id="price" name="price" value="{{ .Product.Price }}" min="0" step="0.01" required>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Base Unit Price (Rp) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" name="price" value="{{ .Product.Price }}" min="0" step="0.01" required>
+                                    <div class="form-text">Price per base unit (legacy)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Base Stock</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" value="{{ .Product.Quantity }}" min="0">
+                                    <div class="form-text">Legacy stock in base units</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" value="{{ .Product.Quantity }}" min="0" required>
-                        </div>
-                        
-                        <div class="mb-3">
+
+                        <div class="mb-4">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3">{{ .Product.Description }}</textarea>
                         </div>
-                        
+
+                        <!-- Units Management Section -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Product Units</h6>
+                                <button type="button" class="btn btn-sm btn-success" onclick="addUnit()">
+                                    <i class="fas fa-plus"></i> Add Unit
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="unitsContainer">
+                                    {{ range $index, $unit := .Units }}
+                                    <div class="unit-row border rounded p-3 mb-3" data-unit-index="{{ $index }}">
+                                        <input type="hidden" name="units[{{ $index }}][id]" value="{{ $unit.ID }}">
+                                        <input type="hidden" name="units[{{ $index }}][delete]" value="false" class="unit-delete-flag">
+
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Unit Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="units[{{ $index }}][unit_name]"
+                                                       value="{{ $unit.UnitName }}" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Conversion Rate <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" name="units[{{ $index }}][conversion_rate]"
+                                                       value="{{ $unit.ConversionRate }}" min="0.01" step="0.01" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Price (Rp) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" name="units[{{ $index }}][price]"
+                                                       value="{{ $unit.Price }}" min="0" step="0.01" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Stock</label>
+                                                <input type="number" class="form-control" name="units[{{ $index }}][quantity]"
+                                                       value="{{ $unit.Quantity }}" min="0">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-control" name="units[{{ $index }}][is_active]">
+                                                    <option value="true" {{ if $unit.IsActive }}selected{{ end }}>Active</option>
+                                                    <option value="false" {{ if not $unit.IsActive }}selected{{ end }}>Inactive</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-1 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeUnit(this)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-11">
+                                                <label class="form-label">Description</label>
+                                                <input type="text" class="form-control" name="units[{{ $index }}][description]"
+                                                       value="{{ $unit.Description }}" placeholder="Optional description">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{ end }}
+                                </div>
+
+                                {{ if not .Units }}
+                                <div class="text-center text-muted py-3" id="noUnitsMessage">
+                                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                                    <p>No units configured. Add units to enable flexible pricing.</p>
+                                </div>
+                                {{ end }}
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between">
-                            <a href="/products" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update Product</button>
+                            <a href="/products/{{ .Product.ID }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Product & Units
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<script>
+let unitIndex = {{ len .Units }};
+
+function addUnit() {
+    const container = document.getElementById('unitsContainer');
+    const noUnitsMessage = document.getElementById('noUnitsMessage');
+
+    if (noUnitsMessage) {
+        noUnitsMessage.style.display = 'none';
+    }
+
+    const unitRow = document.createElement('div');
+    unitRow.className = 'unit-row border rounded p-3 mb-3';
+    unitRow.setAttribute('data-unit-index', unitIndex);
+
+    unitRow.innerHTML = `
+        <input type="hidden" name="units[${unitIndex}][id]" value="">
+        <input type="hidden" name="units[${unitIndex}][delete]" value="false" class="unit-delete-flag">
+
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Unit Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="units[${unitIndex}][unit_name]"
+                       placeholder="e.g., box, dozen" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Conversion Rate <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" name="units[${unitIndex}][conversion_rate]"
+                       placeholder="12" min="0.01" step="0.01" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Price (Rp) <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" name="units[${unitIndex}][price]"
+                       placeholder="18.00" min="0" step="0.01" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Stock</label>
+                <input type="number" class="form-control" name="units[${unitIndex}][quantity]"
+                       placeholder="0" min="0" value="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-control" name="units[${unitIndex}][is_active]">
+                    <option value="true" selected>Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeUnit(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-11">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" name="units[${unitIndex}][description]"
+                       placeholder="Optional description">
+            </div>
+        </div>
+    `;
+
+    container.appendChild(unitRow);
+    unitIndex++;
+}
+
+function removeUnit(button) {
+    const unitRow = button.closest('.unit-row');
+    const deleteFlag = unitRow.querySelector('.unit-delete-flag');
+
+    if (deleteFlag && deleteFlag.value !== '') {
+        // Existing unit - mark for deletion
+        deleteFlag.value = 'true';
+        unitRow.style.display = 'none';
+    } else {
+        // New unit - remove from DOM
+        unitRow.remove();
+    }
+
+    // Show "no units" message if no visible units remain
+    const container = document.getElementById('unitsContainer');
+    const visibleUnits = container.querySelectorAll('.unit-row:not([style*="display: none"])');
+    const noUnitsMessage = document.getElementById('noUnitsMessage');
+
+    if (visibleUnits.length === 0 && noUnitsMessage) {
+        noUnitsMessage.style.display = 'block';
+    }
+}
+</script>
