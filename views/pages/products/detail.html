@@ -11,18 +11,95 @@
                         <div class="col-md-6">
                             <h5>{{ .Product.Name }}</h5>
                             <p class="text-muted">Added by: {{ if .Product.User }}{{ .Product.User.Email }}{{ end }}</p>
+                            <p class="text-muted">Base Unit: {{ .Product.BaseUnitName }}</p>
                         </div>
                         <div class="col-md-6 text-md-end">
-                            <h5 class="text-primary">Rp {{ .Product.Price }}</h5>
-                            <p class="mb-0">Quantity: {{ .Product.Quantity }}</p>
+                            <h5 class="text-primary">Legacy Price: Rp {{ .Product.Price }}</h5>
+                            <p class="mb-0">Legacy Quantity: {{ .Product.Quantity }}</p>
+                            <p class="text-info"><small>Use unit management below for current pricing</small></p>
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <h6>Description</h6>
                         <p>{{ if .Product.Description }}{{ .Product.Description }}{{ else }}No description provided.{{ end }}</p>
                     </div>
-                    
+
+                    <!-- Product Units Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>Available Units</h6>
+                            {{ if eq .Product.UserID .CurrentUserID }}
+                            <small class="text-muted">Units can be managed when editing the product</small>
+                            {{ end }}
+                        </div>
+
+                        {{ if .UnitsWithCalc }}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Unit</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Conversion</th>
+                                        <th>Price per {{ .Product.BaseUnitName }}</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ range .UnitsWithCalc }}
+                                    <tr class="{{ if not .IsActive }}table-secondary{{ end }}">
+                                        <td>
+                                            <strong>{{ .UnitName }}</strong>
+                                            {{ if .IsBaseUnit }}<span class="badge bg-primary ms-1">Base</span>{{ end }}
+                                        </td>
+                                        <td>Rp {{ printf "%.2f" .Price }}</td>
+                                        <td>{{ .Quantity }}</td>
+                                        <td>
+                                            {{ if .IsBaseUnit }}
+                                                1 {{ .UnitName }}
+                                            {{ else }}
+                                                1 {{ .UnitName }} = {{ .ConversionRate }} {{ $.Product.BaseUnitName }}
+                                            {{ end }}
+                                        </td>
+                                        <td>
+                                            <span class="text-info">Rp {{ printf "%.2f" .PricePerBase }}</span>
+                                        </td>
+                                        <td>
+                                            {{ if .IsActive }}
+                                                <span class="badge bg-success">Active</span>
+                                            {{ else }}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {{ end }}
+                                        </td>
+                                    </tr>
+                                    {{ end }}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Total Inventory Summary -->
+                        <div class="alert alert-info mt-3">
+                            <strong>Total Inventory:</strong>
+                            {{ .TotalBaseQuantity }} {{ .Product.BaseUnitName }}(s) equivalent
+                            {{ if .HasStock }}
+                                <span class="badge bg-success ms-2">In Stock</span>
+                            {{ else }}
+                                <span class="badge bg-danger ms-2">Out of Stock</span>
+                            {{ end }}
+                        </div>
+                        {{ else }}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No units configured for this product.
+                            {{ if eq .Product.UserID .CurrentUserID }}
+                            <br><small>Units can be added when editing the product.</small>
+                            {{ end }}
+                        </div>
+                        {{ end }}
+                    </div>
+
                     <div class="mb-4">
                         <h6>Product Information</h6>
                         <table class="table table-bordered">
@@ -40,7 +117,7 @@
                             </tr>
                         </table>
                     </div>
-                    
+
                     {{ if eq .Product.UserID .CurrentUserID }}
                     <div class="d-flex justify-content-end">
                         <a href="/products/edit/{{ .Product.ID }}" class="btn btn-primary me-2">Edit Product</a>
@@ -83,13 +160,13 @@
         document.querySelector('.delete-product')?.addEventListener('click', function() {
             const productId = this.getAttribute('data-id');
             const productName = this.getAttribute('data-name');
-            
+
             // Set the product name in the modal
             document.getElementById('productName').textContent = productName;
-            
+
             // Store the product ID for deletion
             productToDelete = productId;
-            
+
             // Show the modal
             deleteModal.show();
         });

@@ -41,4 +41,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	app.Get("/products/edit/:id", controllers.RenderEditProduct(db))
 	app.Post("/products/edit/:id", controllers.UpdateProduct(db))
 	app.Delete("/products/delete/:id", controllers.DeleteProduct(db))
+
+	// Note: Product Unit management is now integrated into product edit page
+	// Separate unit management routes have been removed for streamlined workflow
 }

@@ -143,3 +143,108 @@ func TestProductQueries(t *testing.T) {
 		assert.Len(t, midRangeProducts, 3)
 	})
 }
+
+func TestProductWithUnits(t *testing.T) {
+	db := setupTestDB()
+
+	// Create test user
+	user := User{Email: "productunits@example.com", Password: "password"}
+	db.Create(&user)
+
+	// Create product
+	product := Product{
+		Name:         "Water",
+		BaseUnitName: "bottle",
+		Price:        1.50,
+		Quantity:     100,
+		UserID:       user.ID,
+		IsActive:     true,
+	}
+	db.Create(&product)
+
+	// Create units
+	units := []ProductUnit{
+		{ProductID: product.ID, UnitName: "bottle", ConversionRate: 1.0, Price: 1.50, Quantity: 100, IsBaseUnit: true, IsActive: true},
+		{ProductID: product.ID, UnitName: "box", ConversionRate: 12.0, Price: 18.00, Quantity: 5, IsBaseUnit: false, IsActive: true},
+		{ProductID: product.ID, UnitName: "case", ConversionRate: 24.0, Price: 35.00, Quantity: 2, IsBaseUnit: false, IsActive: true},
+		{ProductID: product.ID, UnitName: "pallet", ConversionRate: 1000.0, Price: 1400.00, Quantity: 0, IsBaseUnit: false, IsActive: false},
+	}
+
+	for i, unit := range units {
+		db.Create(&unit)
+		// Explicitly set the pallet unit as inactive after creation
+		if unit.UnitName == "pallet" {
+			db.Model(&ProductUnit{}).Where("id = ?", unit.ID).Update("is_active", false)
+		}
+		units[i] = unit // Update the slice with the created unit (including ID)
+	}
+
+	// Reload product with units
+	db.Preload("Units").First(&product, product.ID)
+
+	t.Run("GetBaseUnit", func(t *testing.T) {
+		baseUnit := product.GetBaseUnit()
+		assert.NotNil(t, baseUnit)
+		assert.Equal(t, "bottle", baseUnit.UnitName)
+		assert.True(t, baseUnit.IsBaseUnit)
+		assert.Equal(t, 1.0, baseUnit.ConversionRate)
+	})
+
+	t.Run("GetActiveUnits", func(t *testing.T) {
+		activeUnits := product.GetActiveUnits()
+		assert.Len(t, activeUnits, 3) // bottle, box, case (pallet is inactive)
+	})
+
+	t.Run("GetUnitByName", func(t *testing.T) {
+		boxUnit := product.GetUnitByName("box")
+		assert.NotNil(t, boxUnit)
+		assert.Equal(t, "box", boxUnit.UnitName)
+		assert.Equal(t, 12.0, boxUnit.ConversionRate)
+
+		// Test inactive unit
+		palletUnit := product.GetUnitByName("pallet")
+		assert.Nil(t, palletUnit) // Should be nil because it's inactive
+
+		// Test non-existent unit
+		nonExistent := product.GetUnitByName("gallon")
+		assert.Nil(t, nonExistent)
+	})
+
+	t.Run("GetTotalBaseQuantity", func(t *testing.T) {
+		totalBase := product.GetTotalBaseQuantity()
+		// bottle: 100 * 1 = 100
+		// box: 5 * 12 = 60
+		// case: 2 * 24 = 48
+		// pallet: 0 * 1000 = 0 (but inactive, so not counted)
+		// Total: 100 + 60 + 48 = 208
+		assert.Equal(t, 208.0, totalBase)
+	})
+
+	t.Run("HasStock", func(t *testing.T) {
+		assert.True(t, product.HasStock())
+
+		// Create product with no stock
+		emptyProduct := Product{
+			Name:         "Empty Product",
+			BaseUnitName: "piece",
+			UserID:       user.ID,
+			IsActive:     true,
+		}
+		db.Create(&emptyProduct)
+
+		emptyUnit := ProductUnit{
+			ProductID:      emptyProduct.ID,
+			UnitName:       "piece",
+			ConversionRate: 1.0,
+			Price:          10.00,
+			Quantity:       0,
+			IsBaseUnit:     true,
+			IsActive:       true,
+		}
+		db.Create(&emptyUnit)
+
+		// Reload with units
+		db.Preload("Units").First(&emptyProduct, emptyProduct.ID)
+		assert.False(t, emptyProduct.HasStock())
+	})
+}

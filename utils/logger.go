@@ -23,7 +23,7 @@ func InitLogger() {
 		ForceColors:     true,
 	})
 
-	// Set log level from environment or default to info
+	// Set log level from environment or default to debug for development
 	logLevel := os.Getenv("LOG_LEVEL")
 	switch logLevel {
 	case "debug":
@@ -35,7 +35,12 @@ func InitLogger() {
 	case "error":
 		Log.SetLevel(logrus.ErrorLevel)
 	default:
-		Log.SetLevel(logrus.InfoLevel)
+		// Default to DEBUG in development to see SQL queries
+		if os.Getenv("ENV") == "production" {
+			Log.SetLevel(logrus.InfoLevel)
+		} else {
+			Log.SetLevel(logrus.DebugLevel)
+		}
 	}
 
 	Log.Info("Logger initialized")

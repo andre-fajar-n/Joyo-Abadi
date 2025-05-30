@@ -9,31 +9,103 @@
                     {{ if .Error }}
                     <div class="alert alert-danger">{{ .Error }}</div>
                     {{ end }}
-                    
+
                     <form method="POST" action="/products/create">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Product Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ if .Product }}{{ .Product.Name }}{{ end }}" required>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                           value="{{ if .Product }}{{ .Product.Name }}{{ end }}"
+                                           placeholder="e.g., Premium Water, Copy Paper"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="base_unit_name" class="form-label">Base Unit <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="base_unit_name" name="base_unit_name"
+                                           value="{{ if .Product }}{{ .Product.BaseUnitName }}{{ else }}piece{{ end }}"
+                                           placeholder="e.g., bottle, piece, gram"
+                                           required>
+                                    <div class="form-text">Smallest sellable unit</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="price" class="form-label">Price (Rp)</label>
-                            <input type="number" class="form-control" id="price" name="price" value="{{ if .Product }}{{ .Product.Price }}{{ end }}" min="0" step="0.01" required>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Base Unit Price (Rp) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" name="price"
+                                           value="{{ if .Product }}{{ .Product.Price }}{{ end }}"
+                                           min="0" step="0.01"
+                                           placeholder="1.50"
+                                           required>
+                                    <div class="form-text">Price per base unit</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Initial Stock</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity"
+                                           value="{{ if .Product }}{{ .Product.Quantity }}{{ else }}0{{ end }}"
+                                           min="0"
+                                           placeholder="100">
+                                    <div class="form-text">Starting inventory in base units</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" value="{{ if .Product }}{{ .Product.Quantity }}{{ else }}0{{ end }}" min="0" required>
-                        </div>
-                        
+
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="3">{{ if .Product }}{{ .Product.Description }}{{ end }}</textarea>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Describe your product...">{{ if .Product }}{{ .Product.Description }}{{ end }}</textarea>
                         </div>
-                        
+
+                        <!-- Info Card -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="fas fa-info-circle"></i> Multi-Unit System</h6>
+                                <p class="card-text mb-2">
+                                    After creating the product, you can add additional units like boxes, dozens, or cases
+                                    with different pricing and conversion rates.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Example:</strong> Water Bottles
+                                        <ul class="list-unstyled small text-muted">
+                                            <li>• Base: bottle (Rp 1.50 each)</li>
+                                            <li>• Box: 12 bottles (Rp 18.00)</li>
+                                            <li>• Case: 24 bottles (Rp 35.00)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Benefits:</strong>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li>• Bulk pricing options</li>
+                                            <li>• Flexible inventory tracking</li>
+                                            <li>• Customer choice</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between">
-                            <a href="/products" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Create Product</button>
+                            <a href="/products" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Product
+                            </button>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb"></i>
+                                After creating the product, you'll be able to add additional units with different pricing.
+                            </small>
                         </div>
                     </form>
                 </div>
