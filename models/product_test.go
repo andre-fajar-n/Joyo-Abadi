@@ -20,7 +20,6 @@ func TestProductModel(t *testing.T) {
 		product := Product{
 			Name:        "Test Product",
 			Price:       99.99,
-			Quantity:    10,
 			UserID:      user.ID,
 			Description: "A test product",
 		}
@@ -30,16 +29,14 @@ func TestProductModel(t *testing.T) {
 		assert.NotZero(t, product.ID)
 		assert.Equal(t, "Test Product", product.Name)
 		assert.Equal(t, 99.99, product.Price)
-		assert.Equal(t, 10, product.Quantity)
 		assert.Equal(t, user.ID, product.UserID)
 	})
 
 	t.Run("Product with User Relationship", func(t *testing.T) {
 		product := Product{
-			Name:     "Related Product",
-			Price:    50.00,
-			Quantity: 5,
-			UserID:   user.ID,
+			Name:   "Related Product",
+			Price:  50.00,
+			UserID: user.ID,
 		}
 		db.Create(&product)
 
@@ -53,10 +50,9 @@ func TestProductModel(t *testing.T) {
 
 	t.Run("Product without User", func(t *testing.T) {
 		product := Product{
-			Name:     "Orphan Product",
-			Price:    25.00,
-			Quantity: 3,
-			UserID:   0, // No user assigned
+			Name:   "Orphan Product",
+			Price:  25.00,
+			UserID: 0, // No user assigned
 		}
 
 		result := db.Create(&product)
@@ -70,9 +66,8 @@ func TestProductValidation(t *testing.T) {
 
 	t.Run("Empty Name Allowed by GORM", func(t *testing.T) {
 		product := Product{
-			Name:     "",
-			Price:    10.00,
-			Quantity: 1,
+			Name:  "",
+			Price: 10.00,
 		}
 		result := db.Create(&product)
 		// GORM allows empty strings by default, business logic should validate
@@ -82,9 +77,8 @@ func TestProductValidation(t *testing.T) {
 
 	t.Run("Zero Price Should Be Allowed", func(t *testing.T) {
 		product := Product{
-			Name:     "Free Product",
-			Price:    0,
-			Quantity: 1,
+			Name:  "Free Product",
+			Price: 0,
 		}
 		result := db.Create(&product)
 		assert.NoError(t, result.Error)
@@ -92,9 +86,8 @@ func TestProductValidation(t *testing.T) {
 
 	t.Run("Negative Quantity Should Be Allowed", func(t *testing.T) {
 		product := Product{
-			Name:     "Negative Stock",
-			Price:    10.00,
-			Quantity: -1,
+			Name:  "Negative Stock",
+			Price: 10.00,
 		}
 		result := db.Create(&product)
 		assert.NoError(t, result.Error)
@@ -113,9 +106,9 @@ func TestProductQueries(t *testing.T) {
 
 	// Create test products
 	products := []Product{
-		{Name: "Product A", Price: 10.00, Quantity: 5, UserID: user.ID},
-		{Name: "Product B", Price: 20.00, Quantity: 3, UserID: user.ID},
-		{Name: "Product C", Price: 15.00, Quantity: 0, UserID: user.ID},
+		{Name: "Product A", Price: 10.00, UserID: user.ID},
+		{Name: "Product B", Price: 20.00, UserID: user.ID},
+		{Name: "Product C", Price: 15.00, UserID: user.ID},
 	}
 
 	for _, product := range products {

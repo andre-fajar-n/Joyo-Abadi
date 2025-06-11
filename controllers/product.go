@@ -173,7 +173,6 @@ func UpdateProduct(db *gorm.DB) fiber.Handler {
 		// Store the old values for logging
 		oldName := product.Name
 		oldPrice := product.Price
-		oldQuantity := product.Quantity
 		oldDescription := product.Description
 
 		// Parse the updated values
@@ -215,14 +214,11 @@ func UpdateProduct(db *gorm.DB) fiber.Handler {
 			"user_id":             userID,
 			"name_changed":        oldName != product.Name,
 			"price_changed":       oldPrice != product.Price,
-			"qty_changed":         oldQuantity != product.Quantity,
 			"description_changed": oldDescription != product.Description,
 			"old_name":            oldName,
 			"new_name":            product.Name,
 			"old_price":           oldPrice,
 			"new_price":           product.Price,
-			"old_quantity":        oldQuantity,
-			"new_quantity":        product.Quantity,
 		}).Info("Product updated successfully")
 
 		return c.Redirect("/products")

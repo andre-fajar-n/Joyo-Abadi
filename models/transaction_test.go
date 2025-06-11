@@ -17,10 +17,9 @@ func TestTransactionModel(t *testing.T) {
 	db.Create(&user)
 
 	product := Product{
-		Name:     "Transaction Product",
-		Price:    50.00,
-		Quantity: 10,
-		UserID:   user.ID,
+		Name:   "Transaction Product",
+		Price:  50.00,
+		UserID: user.ID,
 	}
 	db.Create(&product)
 
@@ -82,8 +81,8 @@ func TestTransactionQueries(t *testing.T) {
 	}
 	db.Create(&user)
 
-	product1 := Product{Name: "Product 1", Price: 10.00, Quantity: 10, UserID: user.ID}
-	product2 := Product{Name: "Product 2", Price: 20.00, Quantity: 10, UserID: user.ID}
+	product1 := Product{Name: "Product 1", Price: 10.00, UserID: user.ID}
+	product2 := Product{Name: "Product 2", Price: 20.00, UserID: user.ID}
 	db.Create(&product1)
 	db.Create(&product2)
 
@@ -138,13 +137,13 @@ func TestTransactionValidation(t *testing.T) {
 	// Create test product
 	user := User{Email: "test@example.com", Password: "password"}
 	db.Create(&user)
-	
-	product := Product{Name: "Test Product", Price: 10.00, Quantity: 5, UserID: user.ID}
+
+	product := Product{Name: "Test Product", Price: 10.00, UserID: user.ID}
 	db.Create(&product)
 
 	t.Run("Valid Transaction Types", func(t *testing.T) {
 		validTypes := []string{"sale", "purchase"}
-		
+
 		for _, transactionType := range validTypes {
 			transaction := Transaction{
 				ProductID: product.ID,
