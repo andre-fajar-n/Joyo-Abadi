@@ -47,7 +47,9 @@ func TestLoginHandler(t *testing.T) {
 	}
 	db.Create(&testUser)
 
-	app.Post("/login", Login(db))
+	authController := NewAuth(db)
+
+	app.Post("/login", authController.Login)
 
 	t.Run("Successful Login", func(t *testing.T) {
 		// Create form data
@@ -106,7 +108,8 @@ func TestRegisterHandler(t *testing.T) {
 	db := setupSimpleTestDB()
 	app := setupSimpleTestApp()
 
-	app.Post("/register", Register(db))
+	authController := NewAuth(db)
+	app.Post("/register", authController.Register)
 
 	t.Run("Successful Registration", func(t *testing.T) {
 		formData := url.Values{}
@@ -166,8 +169,10 @@ func TestRegisterHandler(t *testing.T) {
 func TestRenderPages(t *testing.T) {
 	app := setupSimpleTestApp()
 
-	app.Get("/login", RenderLoginPage)
-	app.Get("/register", RenderRegisterPage)
+	authController := NewAuth(nil)
+
+	app.Get("/login", authController.RenderLoginPage)
+	app.Get("/register", authController.RenderRegisterPage)
 
 	t.Run("Render Login Page", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/login", nil)

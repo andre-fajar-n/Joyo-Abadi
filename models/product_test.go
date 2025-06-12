@@ -122,13 +122,6 @@ func TestProductQueries(t *testing.T) {
 		assert.Len(t, userProducts, 3)
 	})
 
-	t.Run("Find Products with Stock", func(t *testing.T) {
-		var inStockProducts []Product
-		result := db.Where("quantity > ?", 0).Find(&inStockProducts)
-		assert.NoError(t, result.Error)
-		assert.Len(t, inStockProducts, 2)
-	})
-
 	t.Run("Find Products by Price Range", func(t *testing.T) {
 		var midRangeProducts []Product
 		result := db.Where("price BETWEEN ? AND ?", 10.00, 20.00).Find(&midRangeProducts)

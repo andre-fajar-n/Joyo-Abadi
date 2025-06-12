@@ -17,16 +17,19 @@ func Setup(app *fiber.App, db *gorm.DB) {
 		})
 	})
 
+	// setup controllers
+	authController := controllers.NewAuth(db)
+
 	// Public routes
-	app.Get("/login", controllers.RenderLoginPage)
-	app.Get("/register", controllers.RenderRegisterPage)
+	app.Get("/login", authController.RenderLoginPage)
+	app.Get("/register", authController.RenderRegisterPage)
 
 	// Apply rate limiting to authentication endpoints
 	authLimiter := middleware.RateLimiter()
-	app.Post("/login", authLimiter, controllers.Login(db))
-	app.Post("/register", authLimiter, controllers.Register(db))
+	app.Post("/login", authLimiter, authController.Login)
+	app.Post("/register", authLimiter, authController.Register)
 
-	app.Get("/logout", controllers.Logout())
+	app.Get("/logout", authController.Logout)
 
 	// Protected routes
 	app.Use(middleware.RequireAuth())
