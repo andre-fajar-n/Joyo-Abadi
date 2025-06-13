@@ -19,6 +19,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 
 	// setup controllers
 	authController := controllers.NewAuth(db)
+	productController := controllers.NewProduct(db)
 
 	// Public routes
 	app.Get("/login", authController.RenderLoginPage)
@@ -37,11 +38,11 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	app.Get("/", controllers.Home())
 
 	// Product routes
-	app.Get("/products", controllers.ListProducts(db))
-	app.Get("/products/create", controllers.RenderCreateProduct())
-	app.Post("/products/create", controllers.CreateProduct(db))
-	app.Get("/products/:id", controllers.GetProductDetail(db))
-	app.Get("/products/edit/:id", controllers.RenderEditProduct(db))
-	app.Post("/products/edit/:id", controllers.UpdateProduct(db))
-	app.Delete("/products/delete/:id", controllers.DeleteProduct(db))
+	app.Get("/products", productController.ListProducts)
+	app.Get("/products/create", productController.RenderCreateProduct)
+	app.Post("/products/create", productController.CreateProduct)
+	app.Get("/products/:id", productController.GetProductDetail)
+	app.Get("/products/edit/:id", productController.RenderEditProduct)
+	app.Post("/products/edit/:id", productController.UpdateProduct)
+	app.Delete("/products/delete/:id", productController.DeleteProduct)
 }

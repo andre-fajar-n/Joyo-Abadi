@@ -11,3 +11,13 @@ type IAuth interface {
 	Register(c *fiber.Ctx) error
 	Logout(c *fiber.Ctx) error
 }
+
+type IProduct interface {
+	ListProducts(c *fiber.Ctx) error
+	RenderCreateProduct(c *fiber.Ctx) error
+	CreateProduct(c *fiber.Ctx) error
+	RenderEditProduct(c *fiber.Ctx) error
+	UpdateProduct(c *fiber.Ctx) error
+	DeleteProduct(c *fiber.Ctx) error
+	GetProductDetail(c *fiber.Ctx) error
+}
