@@ -21,3 +21,7 @@ type IProduct interface {
 	DeleteProduct(c *fiber.Ctx) error
 	GetProductDetail(c *fiber.Ctx) error
 }
+
+type IHome interface {
+	Home(c *fiber.Ctx) error
+}

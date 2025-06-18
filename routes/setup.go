@@ -20,6 +20,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// setup controllers
 	authController := controllers.NewAuth(db)
 	productController := controllers.NewProduct(db)
+	homeController := controllers.NewHome()
 
 	// Public routes
 	app.Get("/login", authController.RenderLoginPage)
@@ -35,7 +36,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// Protected routes
 	app.Use(middleware.RequireAuth())
 
-	app.Get("/", controllers.Home())
+	app.Get("/", homeController.Home)
 
 	// Product routes
 	app.Get("/products", productController.ListProducts)

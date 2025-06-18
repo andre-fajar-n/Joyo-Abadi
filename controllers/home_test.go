@@ -21,7 +21,9 @@ func TestHome(t *testing.T) {
 		return c.Next()
 	})
 
-	app.Get("/", Home())
+	homeController := NewHome()
+
+	app.Get("/", homeController.Home)
 
 	t.Run("Home Page Access", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/", nil)
@@ -33,7 +35,7 @@ func TestHome(t *testing.T) {
 	})
 
 	t.Run("Home Handler Returns Function", func(t *testing.T) {
-		handler := Home()
+		handler := homeController.Home
 		assert.NotNil(t, handler)
 	})
 }
@@ -49,7 +51,8 @@ func TestHomeWithoutUserID(t *testing.T) {
 		},
 	})
 
-	app.Get("/", Home())
+	homeController := NewHome()
+	app.Get("/", homeController.Home)
 
 	t.Run("Home Page Without User ID", func(t *testing.T) {
 		// This test expects a panic due to missing userID in locals
